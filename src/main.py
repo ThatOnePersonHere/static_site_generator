@@ -235,7 +235,7 @@ def extract_title(markdown):
             return remove_excessive_marks(block)
     raise Exception("No Header Present")
 
-def generate_page(from_path, template_path, dest_path,basepath='/'):
+def generate_page(from_path, template_path, dest_path,"https://github.com/ThatOnePersonHere/static_site_generator"):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     source_cont = open(from_path)
     template = open(template_path)
