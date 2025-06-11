@@ -8,6 +8,16 @@ import sys
 from datetime import datetime
 
 def main():
+    if len(sys.argv) < 2:
+        print("Usage: python myscript.py <basepath>")
+        sys.exit(1)
+
+    basepath = sys.argv[1]
+    print("basepath ", sys.argv[1])
+
+    for filename in os.listdir(basepath):
+        print(filename)
+        
     logger = logger_setup(logging.DEBUG)
 
     static_page_source = './static/'
@@ -22,8 +32,7 @@ def main():
         logger.info(f'Remaking location: {static_page_destination}')
         os.mkdir(static_page_destination)
         copy_from_src_to_dest(static_page_source,static_page_destination,os.listdir(path=static_page_source),logger)
-        findContent('./content',sys.argv[0])
-
+        findContent(basepath)
 
 def remove_old_logs(logfile_location,logger):
     if len(os.listdir(path=logfile_location)) > 5:
@@ -260,21 +269,21 @@ def contentRecCall(location, source, dest):
     else:
         return location
 
-def sourceFilesToHTML(text, source, dest, template,basepath):
+def sourceFilesToHTML(text, source, dest, template):
     if type(text) == list:
         for i in text:
-            sourceFilesToHTML(i, source, dest, template,basepath)
+            sourceFilesToHTML(i, source, dest, template)
     else:
-        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')),basepath)
+        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')),source)
 
-def findContent(source,basepath):
+def findContent(source):
     dest = "./docs"
     template = './template.html'
     content_list = []
-    basepath = "/"
     for x in os.listdir(source):
         content_list.append(contentRecCall(x, source,dest))
-    sourceFilesToHTML(content_list, source, dest, template,basepath)
+    sourceFilesToHTML(content_list, source, dest, template)
     pass
 
-main()
+if __name__ == "__main__":
+    main()
