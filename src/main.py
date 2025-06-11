@@ -11,7 +11,7 @@ def main():
     if len(sys.argv) < 2:
         basepath = sys.argv[1]
     else:
-        basepath = "./content"
+        basepath = "./docs"
         
     logger = logger_setup(logging.DEBUG)
 
@@ -27,7 +27,7 @@ def main():
         logger.info(f'Remaking location: {static_page_destination}')
         os.mkdir(static_page_destination)
         copy_from_src_to_dest(static_page_source,static_page_destination,os.listdir(path=static_page_source),logger)
-        findContent(basepath)
+        findContent("./content",basepath)
 
 def remove_old_logs(logfile_location,logger):
     if len(os.listdir(path=logfile_location)) > 5:
@@ -239,8 +239,8 @@ def generate_page(from_path, template_path, dest_path):
     with open(dest_path, 'w', opener=opener) as l:
         page_output = loc_temp.replace('{{ Content }}',markdown_to_html_node(loc_from).to_html())
         page_output = page_output.replace('{{ Title }}',extract_title(loc_from))
-        page_output = page_output.replace('src="/',f'src="./')
-        page_output = page_output.replace('href="/',f'href="./')
+        page_output = page_output.replace('src="/','src="./')
+        page_output = page_output.replace('href="/','href="./')
         print(page_output, file=l)
 
 dir_fd = os.open('./', os.O_RDONLY)
@@ -268,20 +268,20 @@ def contentRecCall(location, source, dest):
     else:
         return location
 
-def sourceFilesToHTML(text, source, dest, template):
+def sourceFilesToHTML(text, source, dest, template,basepath):
     if type(text) == list:
         for i in text:
-            sourceFilesToHTML(i, source, dest, template)
+            sourceFilesToHTML(i, source, dest, template,basepath)
     else:
-        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')))
+        generate_page(os.path.join(source,text), template, os.path.join(basepath,(text[:-2]+'html')))
 
-def findContent(source):
+def findContent(source,basepath):
     dest = "./docs"
     template = './template.html'
     content_list = []
     for x in os.listdir(source):
         content_list.append(contentRecCall(x, source,dest))
-    sourceFilesToHTML(content_list, source, dest, template)
+    sourceFilesToHTML(content_list, source, dest, template,basepath)
     pass
 
 if __name__ == "__main__":
