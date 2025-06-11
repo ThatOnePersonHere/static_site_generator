@@ -238,7 +238,7 @@ def generate_page(from_path, template_path, dest_path,basepath):
     loc_temp = template.read()
     with open(dest_path, 'w', opener=opener) as l:
         page_output = loc_temp.replace('{{ Content }}',markdown_to_html_node(loc_from).to_html())
-        page_output = page_output.replace('{{ Title }}',basepath)
+        page_output = page_output.replace('{{ Title }}',extract_title(loc_from))
         page_output = page_output.replace('src="/',f'src="{basepath}/')
         page_output = page_output.replace('href="/',f'href="{basepath}/')
         print(page_output, file=l)
@@ -273,7 +273,7 @@ def sourceFilesToHTML(text, source, dest, template):
         for i in text:
             sourceFilesToHTML(i, source, dest, template)
     else:
-        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')),"https://github.com/ThatOnePersonHere/static_site_generator")
+        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')),"https://thatonepersonhere.github.io/static_site_generator")
 
 def findContent(source):
     dest = "./docs"
