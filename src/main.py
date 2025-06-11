@@ -12,7 +12,7 @@ def main():
         print("Usage: python myscript.py <basepath>")
         sys.exit(1)
 
-    basepath = sys.argv[1]
+    basepath = "https://github.com/ThatOnePersonHere/static_site_generator"
     print("basepath ", sys.argv[1])
 
     for filename in os.listdir(basepath):
