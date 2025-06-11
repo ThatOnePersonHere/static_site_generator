@@ -273,7 +273,7 @@ def sourceFilesToHTML(text, source, dest, template):
         for i in text:
             sourceFilesToHTML(i, source, dest, template)
     else:
-        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')),source)
+        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')),dest)
 
 def findContent(source):
     dest = "./docs"
