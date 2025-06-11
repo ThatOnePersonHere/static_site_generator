@@ -239,10 +239,9 @@ def generate_page(from_path, template_path, dest_path,basepath):
     with open(dest_path, 'w', opener=opener) as l:
         page_output = loc_temp.replace('{{ Content }}',markdown_to_html_node(loc_from).to_html())
         page_output = page_output.replace('{{ Title }}',extract_title(loc_from))
-        page_output = page_output.replace('src="/',f'src="./')
-        page_output = page_output.replace('href="/',f'href="./')
-        print(page_output)
-        #print(page_output, file=l)
+        page_output = page_output.replace('src="/',f'src="{basepath}/')
+        page_output = page_output.replace('href="/',f'href="{basepath}/')
+        print(page_output, file=l)
 
 dir_fd = os.open('./', os.O_RDONLY)
 
