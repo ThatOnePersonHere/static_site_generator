@@ -9,14 +9,9 @@ from datetime import datetime
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python myscript.py <basepath>")
-        sys.exit(1)
-
-    basepath = "https://github.com/ThatOnePersonHere/static_site_generator"
-    print("basepath ", sys.argv[1])
-
-    for filename in os.listdir(basepath):
-        print(filename)
+        basepath = sys.argv[1]
+    else:
+        basepath = "./content"
         
     logger = logger_setup(logging.DEBUG)
 
@@ -235,14 +230,18 @@ def extract_title(markdown):
             return remove_excessive_marks(block)
     raise Exception("No Header Present")
 
-def generate_page(from_path, template_path, dest_path,basepath='/'):
+def generate_page(from_path, template_path, dest_path,basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     source_cont = open(from_path)
     template = open(template_path)
     loc_from = source_cont.read()
     loc_temp = template.read()
     with open(dest_path, 'w', opener=opener) as l:
-        print(loc_temp.replace('{{ Content }}',markdown_to_html_node(loc_from).to_html()).replace('{{ Title }}',extract_title(loc_from)).replace('href="/',f'href="{basepath}').replace('href="/',f'href="{basepath}'), file=l)
+        page_output = loc_temp.replace('{{ Content }}',markdown_to_html_node(loc_from).to_html())
+        page_output = page_output.replace('{{ Title }}',extract_title(loc_from))
+        page_output = page_output.replace('src="/',f'test0="{basepath}/')
+        page_output = page_output.replace('href="/',f'href="{basepath}/')
+        print(page_output, file=l)
 
 dir_fd = os.open('./', os.O_RDONLY)
 
@@ -274,7 +273,7 @@ def sourceFilesToHTML(text, source, dest, template):
         for i in text:
             sourceFilesToHTML(i, source, dest, template)
     else:
-        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')),source)
+        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')),"https://github.com/ThatOnePersonHere/static_site_generator")
 
 def findContent(source):
     dest = "./docs"
