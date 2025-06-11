@@ -1,0 +1,31 @@
+import test_functs
+    
+Basic_node_generation = [
+    ('eq_test',False,False,False,'TextNode', ("Test value", 'link', "htts://www.boot.dev"),'TextNode(Test value, link, htts://www.boot.dev)'),
+    ('eq_test','__repr__',False,False,'TextNode', ("Test value", 'link', "htts://www.boot.dev"),'TextNode(Test value, link, htts://www.boot.dev)'),
+    ('eq_test','__eq__',True,False,'TextNode', ("Test value", 'link', "htts://www.boot.dev"),'True'),
+    ('eq_test',False,False,False,'TextNode', ("Second Test Node", 'code'),'TextNode(Second Test Node, code, None)'),
+    ('not_eq_test',False,False,False,'TextNode', ("Test value", 'link', "htts://www.boot.dev"),'None'),
+    ]
+
+Text_to_HTML= [
+        ('eq_test',False,False,'text_node_to_html_node','TextNode', ("Test value normal", 'text'),'HTMLNode(None,Test value normal,None,None)'),
+        ('eq_test',False,False,'text_node_to_html_node','TextNode', ("Test value bold", 'bold'),'HTMLNode(b,Test value bold,None,None)'),
+        ('eq_test',False,False,'text_node_to_html_node','TextNode', ("Test value italic", 'italic'),'HTMLNode(i,Test value italic,None,None)'),
+        ('eq_test',False,False,'text_node_to_html_node','TextNode', ("Test value code", 'code'),'HTMLNode(code,Test value code,None,None)'),
+        ('eq_test',False,False,'text_node_to_html_node','TextNode', ("Test value link", 'link', "https://www.boot.dev"),'HTMLNode(a,Test value link,None,{href: https://www.boot.dev,})'),
+        ('eq_test',False,False,'text_node_to_html_node','TextNode', ("Test value image", 'image', "https://www.boot.dev"),"HTMLNode(img,,None,{src: https://www.boot.dev,alt: 'Test value image',})"),
+]
+
+Text_to_leaf = [
+        ('assert_test',False,False,'text_node_to_html_node','TextNode', ('Test Text','Not_A_Type','www.google.com'),'Assert Raised'),
+    ]
+
+
+Test_Cases = [
+    Basic_node_generation,
+    Text_to_HTML,
+    Text_to_leaf,
+]
+
+test_functs.main(Test_Cases)
