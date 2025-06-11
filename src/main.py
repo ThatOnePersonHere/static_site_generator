@@ -230,7 +230,7 @@ def extract_title(markdown):
             return remove_excessive_marks(block)
     raise Exception("No Header Present")
 
-def generate_page(from_path, template_path, dest_path,basepath):
+def generate_page(from_path, template_path, dest_path):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     source_cont = open(from_path)
     template = open(template_path)
@@ -239,8 +239,8 @@ def generate_page(from_path, template_path, dest_path,basepath):
     with open(dest_path, 'w', opener=opener) as l:
         page_output = loc_temp.replace('{{ Content }}',markdown_to_html_node(loc_from).to_html())
         page_output = page_output.replace('{{ Title }}',extract_title(loc_from))
-        page_output = page_output.replace('src="/',f'src="{basepath}/')
-        page_output = page_output.replace('href="/',f'href="{basepath}/')
+        page_output = page_output.replace('src="/',f'src="./')
+        page_output = page_output.replace('href="/',f'href="./')
         print(page_output, file=l)
 
 dir_fd = os.open('./', os.O_RDONLY)
@@ -273,7 +273,7 @@ def sourceFilesToHTML(text, source, dest, template):
         for i in text:
             sourceFilesToHTML(i, source, dest, template)
     else:
-        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')),dest)
+        generate_page(os.path.join(source,text), template, os.path.join(dest,(text[:-2]+'html')))
 
 def findContent(source):
     dest = "./docs"
