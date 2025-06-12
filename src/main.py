@@ -1,11 +1,16 @@
 from textnode import *
 from htmlnode import *
+from logger import *
 import re
 import os
 import shutil
 import logging
 import sys
-from datetime import datetime
+
+#initiate function to make log, global as its needed throughout the program
+#Print to log, use name.logItem(level, text to log)
+log = LogRecord()
+log.logger_setup(logging.DEBUG)
 
 def main():
     if len(sys.argv) > 1:
@@ -13,59 +18,46 @@ def main():
     else:
         basepath = ""
 
-    logger = logger_setup(logging.DEBUG)
-
+    #Static info, source and destination
     static_page_source = './static/'
     static_page_destination = './docs/'
+    static_content_source = './content'
 
+    if os.path.exists(static_content_source) == False:
+        log.logItem('error',f"Content folder {static_content_source} is missing")
     if os.path.exists(static_page_destination) == False:
-        logging.error(f"Source folder {static_page_source} is missing")
+        log.logItem('error',f"Source folder {static_page_source} is missing")
     else:
         if os.path.exists(static_page_destination) == True:
-            logger.info(f'Clearing locaion: {static_page_destination}')
+            log.logItem('info',f'Clearing locaion: {static_page_destination}')
             shutil.rmtree(static_page_destination)
-        logger.info(f'Remaking location: {static_page_destination}')
+        log.logItem('info',f'Remaking location: {static_page_destination}')
         os.mkdir(static_page_destination)
-        copy_from_src_to_dest(static_page_source,static_page_destination,os.listdir(path=static_page_source),logger)
+        copy_from_src_to_dest(static_page_source,static_page_destination,os.listdir(path=static_page_source))
         findContent("./content",basepath)
 
-def remove_old_logs(logfile_location,logger):
-    if len(os.listdir(path=logfile_location)) > 5:
-        oldest_file = min(os.listdir(path=logfile_location))
-        logger.info(f'Deleted file: {oldest_file}')
-        os.remove(logfile_location+oldest_file)
-        remove_old_logs(logfile_location,logger)
-    pass
+def handleError(type, text):
+    log.logItem('error',text)
+    raise type(text)
 
-
-def logger_setup(logging_level):
-    logger = logging.getLogger(__name__)
-    logfile_location = './logs/'
-    if os.path.exists(logfile_location) == False:
-        os.mkdir(logfile_location)
-    LOGFILENAME = logfile_location + datetime.now().strftime('logfile_%H%M%S_%d%m%Y.log')
-    logging.basicConfig(format='%(asctime)s %(message)s',filename=LOGFILENAME, encoding='utf-8', level=logging_level)
-    remove_old_logs(logfile_location,logger)
-    return logger
-
-def copy_from_src_to_dest(src_loc,copy_dest,obj_list,logger):
+def copy_from_src_to_dest(src_loc,copy_dest,obj_list):
     for obj in obj_list:
-        obj_path = src_loc + obj
+        obj_path = os.path.join(src_loc, obj)
         if os.path.isfile(obj_path):
-            logger.info(f'Copy file {obj}\n\t\tsrc path: {src_loc}, dst: {copy_dest}')
+            log.logItem('info',f'Copy file {obj}\n\t\tsrc path: {src_loc}, dst: {copy_dest}')
             shutil.copy(obj_path,copy_dest)
         else:
-            new_dir = copy_dest + obj + "/"
+            new_dir = os.path.join(copy_dest, obj + "/")
             os.mkdir(new_dir)
-            logger.info(f'Created dir {new_dir}')
-            copy_from_src_to_dest(obj_path + "/",new_dir,os.listdir(path=obj_path),logger)
+            log.logItem('info',f'Created dir {new_dir}')
+            copy_from_src_to_dest(obj_path + "/",new_dir,os.listdir(path=obj_path))
         pass
     pass
 
-#Find tag for texttype
+#Find texttype and return correct leafnode
 def text_node_to_html_node(self):
     if self.text_type not in TextType:
-        raise ValueError(f"Invalid text type: {self.text_type}")
+        handleError(ValueError,f"Invalid text type: {self.text_type}")
     match TextType(self.text_type):
         case TextType.NORMAL:
             return LeafNode(tag=None, value=self.text, props=None)
@@ -96,20 +88,20 @@ def split_nodes_delimiter(nodes_old, delimiter, text_type):
                     else:
                         node_list.append(TextNode(string_list[i], node.text_type))
         else:
-            raise ValueError(f"No closing delimiter {delimiter} found in the text: {node.text}")
+            handleError(ValueError,f"No closing delimiter {delimiter} found in the text: {node.text}")
     return node_list
 
 #Finds and returns the image info from text      
 def extract_markdown_images(text):
     if len(re.findall(r"!\[", text)) > len(re.findall(r"[\]]", text)) or len(re.findall(r"\]\(", text)) > len(re.findall(r"[\)]", text)):
-        raise ValueError("Text markdown is not formatted correctly, check for !,[,],(,)")
+        handleError(ValueError,"Text markdown is not formatted correctly, check for !,[,],(,)")
     return re.findall(r"!\[([^\]\]]*)\]\(([^\(\)]*)\)", text)
 
 
 #Finds and returns the link info from text
 def extract_markdown_links(text):
     if len(re.findall(r"\[", text)) > len(re.findall(r"[\]]", text)) or len(re.findall(r"\]\(", text)) > len(re.findall(r"[\)]", text)):
-        raise ValueError("Text markdown is not formatted correctly, check for [,],(,)")
+        handleError(ValueError,"Text markdown is not formatted correctly, check for [,],(,)")
     return re.findall(r"\[([^\]\]]*)\]\(([^\(\)]*)\)", text)
 
 #Extracts image info from textnode and returns as list of textnodes
@@ -151,6 +143,7 @@ def split_nodes_link(old_nodes):
                 node_list.append(TextNode(str(node_text_split[i]), TextType.NORMAL))
     return node_list
 
+#Takes in text, and returns list of text nodes
 def text_to_textnodes(text):
     test_nodes = []
     test_nodes.extend(split_nodes_link(
@@ -165,12 +158,15 @@ def text_to_textnodes(text):
             )
     return test_nodes
 
+#Removes markup for HTML nodes
 def remove_excessive_marks(text):
     return re.sub(r'(^\W* )|(^\d*\. )', '',text)
 
+#Splits whole markdown to list of paragraph blocks
 def markdown_to_blocks(markdown):
     return list(filter(lambda x: x.strip(' \n') != '',re.split(r'\n\n', markdown)))
 
+#Generates header nodes
 def htmlHeaderNode(block):
    text_nodes = []
    for item in text_to_textnodes(remove_excessive_marks(block)):
@@ -184,15 +180,14 @@ def generateQuoteBlock(block):
     return ParentNode("blockquote",bricks)
 
 def listLineCleanup(text):
-    test = []
+    newHtmlNodes = []
     for line in text_to_textnodes(text):
         if type(line) == list:
             for item in line:
-                test.append(text_node_to_html_node(item))
+                newHtmlNodes.append(text_node_to_html_node(item))
         else:
-            test.append(text_node_to_html_node(line))
-    return test
-    pass
+            newHtmlNodes.append(text_node_to_html_node(line))
+    return newHtmlNodes
 
 def generateListBlock(block, tag):
     bricks = []
@@ -228,10 +223,10 @@ def extract_title(markdown):
     for block in markdown_to_blocks(markdown):
         if block.startswith("#"):
             return remove_excessive_marks(block)
-    raise Exception("No Header Present")
+    handleError(Exception,"No Header Present")
 
 def generate_page(from_path, template_path, dest_path,basepath):
-    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    log.logItem('info',f"Generating page from {from_path} to {dest_path} using {template_path}")
     source_cont = open(from_path)
     template = open(template_path)
     loc_from = source_cont.read()
@@ -242,25 +237,20 @@ def generate_page(from_path, template_path, dest_path,basepath):
         page_output = page_output.replace('src="/',f'src="{basepath}/')
         page_output = page_output.replace('href="/',f'href="{basepath}/')
         print(page_output, file=l)
+    log.logItem('info',f"Page Generated:{dest_path}")
 
 dir_fd = os.open('./', os.O_RDONLY)
 
 def opener(path, flags):
+    log.logItem('info', f'open file: {path}, {flags}, {dir_fd}')
     return os.open(path, flags, dir_fd=dir_fd)
-
-def test(loc):
-    for x in loc:
-        if os.path.isfile(os.path.join(loc, x)) == True:
-            return os.path.join(loc, x)
-        else:
-            loca = test(os.path.join(loc, x))
-    return loca
 
 def contentRecCall(location, source, dest):
     current_loc = os.path.join(source, location)
     items = []
     if os.path.isfile(current_loc) == False:
         if os.path.exists(os.path.join(dest, location)) == False:
+            log.logItem('info',f'creating directory: {os.path.join(dest, location)}')
             os.mkdir(os.path.join(dest, location))
         for x in os.listdir(current_loc):
             items.append(contentRecCall(os.path.join(location, x), source,dest))
